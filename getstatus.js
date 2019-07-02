@@ -45,10 +45,12 @@ async function getStatusUpdate (api) {
   }
 
   // Retrieve validator data
-  const validators = await api.query.session.validators()
+  const validators = await api.query.staking.currentElected()
   update.validators = {
     count: validators.length
   }
+
+  /*
 
   // This doesn't seem to return correct values
   if (validators && validators.length > 0) {
@@ -57,6 +59,17 @@ async function getStatusUpdate (api) {
     let totalValidatorBalances = validatorBalances.reduce((total, value) => total.add(value), new BN(0))
     update.validators.total_stake = totalValidatorBalances.toString()
   }
+  */
+
+  var totalStake = 0
+  var validatorStake = 0
+  for (var i=0, len = validators.length; i < len; i++) {
+    validatorStake = await api.query.staking.stakers(validators[i])
+    totalStake += validatorStake.total.words[0]
+  }
+  update.validators.total_stake = totalStake
+
+
 
   // Retrieve membership data
   const memberships = await api.query.membership.nextMemberId()
